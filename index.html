@@ -1,0 +1,276 @@
+User
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/tailwindcss@2.2.19/dist/tailwind.min.css">
+    <link href="https://fonts.googleapis.com/css?family=Work+Sans:200,400&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+   
+    <title>Notes App</title>
+</head>
+<body>
+    <style>
+        .note p {
+            flex: 1;
+            overflow-y: auto !important;
+            margin: 0;
+        }
+
+ 
+        .note {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 0.5rem;
+    background-color: #f7bdff;
+    border-radius: 0.375rem;
+    overflow-wrap: break-word;
+    overflow-y: auto; /* Remove !important */
+    max-height: 100%;
+}
+
+.notes-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+    max-height: none;
+    overflow-y: auto; /* Remove !important */
+    overflow-x: hidden;
+    width: 100%;
+}
+
+.contentDiv {
+    margin-bottom: 10px;
+    overflow-y: auto; /* Ensure contentDiv can scroll if content overflows */
+}
+
+/* Add overflow-y: auto to the notes class to handle note content scrolling */
+
+
+        .delete-button {
+            flex-shrink: 0;
+        }
+
+       
+
+        .notes {
+            width: 100%;
+            max-width: 400px;
+            min-height:300px;
+            max-height: 500px;
+            border: 1px solid rgb(255, 255, 255);
+            overflow-y: auto !important;
+            overflow-x: hidden;
+            word-wrap: break-word;
+            flex-shrink: 0;}
+            
+    .note-home {
+            background-color: rgb(196, 230, 233);
+        }
+
+    .note-hobbies {
+            background-color:#fecaca
+        }
+
+    .note-work {
+            background-color: rgb(255, 237, 158);
+        }
+
+    .error-message {
+            color: red;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+    </style>
+
+    <main class="bg-gray-200 flex justify-center items-center h-screen gap-4 p-20 relative">
+        <div class="notes p-4 rounded-md shadow-2xl bg-white">
+            <h1 class="text-xl mb-4 underline purple">Notes:</h1>
+            <div class="notes-container flex flex-col gap-5" id="notesContainer">
+                <!-- Notes will be dynamically added here -->
+            </div>
+        </div>
+        <form class="rounded-md shadow-2xl bg-white p-4">
+            <textarea class="border-2 rounded-md w-full bg-gray-200" name="" id="noteContent" cols="30" rows="10" style="height: 70px;"></textarea>
+            <div class="flex flex-col">
+                <h1 class="text-xl my-4 underline">Priority:</h1>
+                <div class="radio-input">
+                    <input type="radio" id="priority-1" name="priority" value="1">
+                    <label for="priority-1">Very Low</label>
+                </div>
+                <div class="radio-input"><input type="radio" id="priority-2" name="priority" value="2"> <label for="priority-2">Low</label></div>
+                <div class="radio-input"><input type="radio" id="priority-3" name="priority" value="3"> <label for="priority-3">Medium</label></div>
+                <div class="radio-input"><input type="radio" id="priority-4" name="priority" value="4"> <label for="priority-4">High</label></div>
+                <div class="radio-input"><input type="radio" id="priority-5" name="priority" value="5"> <label for="priority-5">Very High</label></div>
+                <div id="priorityError" class="error-message"></div>
+            </div>
+            <h1 class="text-xl my-4 underline">Category:</h1>
+            <div>
+                <select name="category" id="category">
+                    <option value="">Select Category</option>
+                    <option value="home">Home</option>
+                    <option value="hobbies">Hobbies</option>
+                    <option value="work">Work</option>
+                </select>
+                <div id="categoryError" class="error-message"></div>
+            </div>
+            <br>
+            <button class="bg-green-200 p-4  rounded-md " type="button" onclick="addNote()">Add Note</button>
+        </form>
+    </main>
+    <script>
+    let notesContainer = document.getElementById('notesContainer');
+    let noteContentInput = document.getElementById('noteContent');
+    const notes = JSON.parse(localStorage.getItem('notes')) || [];
+
+    
+
+    // Commented out the initial notes for now
+    // const notes = [
+    //     {
+    //         id: '1',
+    //         content: 'random text 1',
+    //         priority: 1,
+    //         category: 'home',
+    //         profile: 'profile.webp'
+    //     },
+    //     {
+    //         id: '2',
+    //         content: 'random text 2',
+    //         priority: 1,
+    //         category: 'hobbies',
+    //         profile: 'profile.webp'
+    //     },
+    //     {
+    //         id: '3',
+    //         content: 'random text 3',
+    //         priority: 1,
+    //         category: 'work',
+    //         profile: 'profile.webp'
+    //     }
+    // ];
+
+    updateUINotesContainer();
+
+    function updateUINotesContainer() {
+        notesContainer.innerHTML = '';
+
+        notes.forEach(function (noteItem) {
+            let noteDiv = createNoteElement(noteItem);
+            notesContainer.appendChild(noteDiv);
+        });
+    }
+    function createNoteElement(noteItem) {
+    let noteDiv = document.createElement('div');
+    noteDiv.className = `flex flex-col p-4 rounded-md bg-gray-200 relative note note-${noteItem.category.toLowerCase()}`;
+
+    let profileDiv = document.createElement('div');
+    profileDiv.className = "h-16 w-16 overflow-hidden rounded-full mb-0"; // Adjusted margin from mb-2 to mb-1
+    profileDiv.style.flexShrink = '0';// Avoid excessive shrinking
+
+    let profileImg = document.createElement('img');
+    profileImg.src = "girl  pic.jpeg";
+    profileImg.alt = "";
+    profileDiv.appendChild(profileImg);
+
+    let contentDiv = document.createElement('div');
+    contentDiv.className = 'overflow-y-auto h-20'; // Adjust the height as needed
+    contentDiv.style.marginBottom = '0px'; // Reduced margin from 10px to 5px
+
+    let contentP = document.createElement('p');
+    contentP.textContent = noteItem.content;
+
+    contentDiv.appendChild(contentP);
+
+    let deleteButton = document.createElement('p');
+    deleteButton.className = "delete-button absolute top-4 right-4 rounded-full bg-white cursor-pointer";
+    deleteButton.textContent = 'X';
+    deleteButton.onclick = function () {
+        removeNote(noteItem.id);
+    };
+
+    noteDiv.appendChild(profileDiv);
+    noteDiv.appendChild(contentDiv);
+    noteDiv.appendChild(deleteButton);
+
+    return noteDiv;
+}
+
+
+
+
+
+function addNote() {
+        const newNoteContent = noteContentInput.value.trim();
+        const selectedPriority = document.querySelector('input[name="priority"]:checked');
+        const selectedCategory = document.getElementById('category');
+        const priorityError = document.getElementById('priorityError');
+        const categoryError = document.getElementById('categoryError');
+
+        priorityError.textContent = "";
+        categoryError.textContent = "";
+
+            if (!newNoteContent) {
+                alert('Please fill out the note content field.');
+                return;
+            }
+
+            if (!selectedPriority) {
+                priorityError.textContent = "Priority is required.";
+                return;
+            }
+
+            if (!selectedCategory.value) {
+                categoryError.textContent = "Category is required.";
+                return;
+            }
+
+            const newNote = {
+                id: Date.now().toString(),
+                content: newNoteContent,
+                priority: selectedPriority.value,
+                category: selectedCategory.value,
+                profile: 'girl  pic.jpeg'
+            };
+
+            let newNoteDiv = createNoteElement(newNote);
+            notesContainer.appendChild(newNoteDiv);
+
+            notes.unshift(newNote);
+            updateLocalStorage();
+
+            noteContentInput.value = '';
+            selectedCategory.value = ''; // Reset category dropdown
+        }
+        
+
+    function removeNote(noteId) {
+        const updatedNotes = notes.filter(function (note) {
+            return note.id !== noteId;
+        });
+
+        notesContainer.innerHTML = '';
+
+        updatedNotes.forEach(function (noteItem) {
+            let noteDiv = createNoteElement(noteItem);
+            notesContainer.appendChild(noteDiv);
+        });
+
+        notes.length = 0;
+
+        updatedNotes.forEach(function (noteItem) {
+            notes.push(noteItem);
+        });
+        updateLocalStorage();
+  
+    }
+function updateLocalStorage() {
+    localStorage.setItem('notes', JSON.stringify(notes));
+}
+
+</script>
+</body>
+</html>
